@@ -1,5 +1,5 @@
 {
-  "name": "scu2008/elasticsearchORM",
+  "name": "hikenote/elasticsearch-orm",
   "description": "elasticsearchORM is an ActiveObject-like elasticsearch sql based on php",
   "minimum-stability": "stable",
   "license": "MIT",
