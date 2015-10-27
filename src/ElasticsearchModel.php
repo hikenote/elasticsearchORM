@@ -89,10 +89,11 @@ class ElasticsearchModel extends DataObject
         $params = $this->getParams($params);
         $result = self::$_esAdapter->search($params);
         $data = [];
+        $data['total'] = $result['hits']['total'];
         foreach($result['hits']['hits'] as $value){
             $obj = self::instance($value['_source']);
             self::setDocumentInfo($obj, $value);
-            $data[] = $obj;
+            $data['data'][] = $obj;
         }
         return $data;
     }
@@ -157,12 +158,17 @@ class ElasticsearchModel extends DataObject
     }
 
     public function save(){
-        if(empty($this->_data)){
-            $result = self::$_esAdapter->create($this->getParams(['id' => $this->id(), 'body' => $this->_cleanData]));
-        }else{
-            $result = self::$_esAdapter->update($this->getParams(['id' => $this->id(), 'body' => ['doc' => $this->_data, 'doc_as_upsert' => true]]));
-            $this->_data = [];
+        try{
+            if(empty($this->_data)){
+                $result = self::$_esAdapter->create($this->getParams(['id' => $this->id(), 'body' => $this->_cleanData]));
+            }else{
+                $result = self::$_esAdapter->update($this->getParams(['id' => $this->id(), 'body' => ['doc' => $this->_data, 'doc_as_upsert' => true]]));
+                $this->_data = [];
+            }
+        }catch (\Exception $e){
+            return null;
         }
+
         return $result;
     }
 
@@ -221,10 +227,23 @@ class ElasticsearchModel extends DataObject
         return self::checkBulkResponse($result);
     }
 
+    public static function getPrimaryArray($ids){
+        $result = [];
+        if(is_array($ids)){
+            foreach($ids as $index => $id){
+                $result[static::$_primary[$index]] = $id;
+            }
+        }else{
+            $result[static::$_primary[0]] = $ids;
+        }
+
+        return $result;
+    }
+
     public static function batchUpdateCounter($bulkData, $async=true){
         $bulk = [];
         foreach($bulkData as $data){
-            $obj = new static($data['data']);
+            $obj = new static(static::getPrimaryArray($data['id']));
             $fields = $data['fields'];
             $defaults = isset($data['defaultValues']) ? $data['defaultValues'] : [];
             $bulk[] = ['update' => $obj->setBulkParams(['id' => $obj->id(), 'retry_on_conflict' => 5])];
@@ -238,10 +257,11 @@ class ElasticsearchModel extends DataObject
 
     }
 
+
     public static function batchPartialUpdate($bulkData, $async=true){
         $bulk = [];
         foreach($bulkData as $data){
-            $obj = new static($data['data']);
+            $obj = new static(static::getPrimaryArray($data['id']));
             $bulk[] = ['update' => $obj->setBulkParams(['id' => $obj->id(), 'retry_on_conflict' => 5])];
             $bulk[] = ['doc' => $data['fields'], 'doc_as_upsert'=>true];
         }
@@ -255,7 +275,7 @@ class ElasticsearchModel extends DataObject
     public static function batchInsert($bulkData, $async=true){
         $bulk = [];
         foreach($bulkData as $data){
-            $obj = new static($data['data']);
+            $obj = new static(static::getPrimaryArray($data['id']));
             $bulk[] = ['index' => $obj->setBulkParams(['id' => $obj->id()])];
             $bulk[] = $data['fields'];
         }
@@ -266,10 +286,10 @@ class ElasticsearchModel extends DataObject
         }
     }
 
-    public static function batchDelete($bulkData, $async=true){
+    public static function batchDelete($bulkId, $async=true){
         $bulk = [];
-        foreach($bulkData as $data){
-            $obj = new static($data['data']);
+        foreach($bulkId as $id){
+            $obj = new static(static::getPrimaryArray($id));
             $bulk[] = ['delete' => $obj->setBulkParams(['id' => $obj->id()])];
         }
         if($async){
