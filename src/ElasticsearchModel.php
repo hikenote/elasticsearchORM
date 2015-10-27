@@ -158,10 +158,11 @@ class ElasticsearchModel extends DataObject
 
     public function save(){
         if(empty($this->_data)){
-            return;
+            $result = self::$_esAdapter->create($this->getParams(['id' => $this->id(), 'body' => $this->_cleanData]));
+        }else{
+            $result = self::$_esAdapter->update($this->getParams(['id' => $this->id(), 'body' => ['doc' => $this->_data, 'doc_as_upsert' => true]]));
+            $this->_data = [];
         }
-        $result = self::$_esAdapter->update($this->getParams(['id' => $this->id(), 'body' => ['doc' => $this->_data, 'doc_as_upsert' => true]]));
-        $this->_data = [];
         return $result;
     }
 
