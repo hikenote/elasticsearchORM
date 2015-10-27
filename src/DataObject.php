@@ -12,17 +12,32 @@ abstract class DataObject extends \ArrayObject
 
     protected static $_searchFields = [];
 
+    protected static $_filterFields = [];
+
     protected $_id = [];
 
     protected $_idArray = [];
 
 
     public function __construct(array $data = []){
+        $data = $this->extractFields($data);
         parent::__construct($data);
         $this->_cleanData = $data;
         if($data && static::$_primary){
             $this->_id = $this->extractIdFromData($data);
         }
+    }
+
+    protected function extractFields($data){
+        if(static::$_filterFields){
+            $fields = array_flip(static::$_filterFields);
+            foreach($data as $k => $v){
+                if(!isset($fields[$k])){
+                    unset($data[$k]);
+                }
+            }
+        }
+        return $data;
     }
 
     public function offsetSet($fieldName, $value){
