@@ -20,7 +20,7 @@ class ElasticsearchQuery extends Query
         if($this->_parts['limit']){
             $params['size'] = $this->_parts['limit'];
         }
-        if($this->_parts['where']){
+        if(count($this->_parts['where']) > 1){
             $params['body']['query'] = $this->renderWhere();
         }
         if($this->_parts['multi_match']){
