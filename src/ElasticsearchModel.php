@@ -55,8 +55,8 @@ class ElasticsearchModel extends DataObject
     }
 
     public static function setDocumentInfo($object, $info){
-        $object->_index = $info['_index'];
-        $object->_type  = $info['_type'];
+        $object->index = $info['_index'];
+        $object->type  = $info['_type'];
     }
 
     public function getParams(array $params){
