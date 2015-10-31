@@ -15,6 +15,10 @@ class ElasticsearchModel extends DataObject
 
     protected static $_type = null;
 
+    protected $index = null;
+
+    protected $type = null;
+
     public static function setAdapter(\Elasticsearch\Client $adapter){
         static::$_esAdapter = $adapter;
     }

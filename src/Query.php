@@ -7,7 +7,7 @@ class Query
         'fields' => [],
         'sort'   => [],
         'skip'   => 0,
-        'limit'  => 1,
+        'limit'  => 0,
         'where'  => ['and'],
         'multi_match' => [],
     ];
