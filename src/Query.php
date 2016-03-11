@@ -10,6 +10,7 @@ class Query
         'limit'  => 0,
         'where'  => ['and'],
         'multi_match' => [],
+        'function_score' => [],
     ];
 
     public function select(array $fields){
@@ -42,12 +43,22 @@ class Query
         return $this;
     }
 
-    public function multi_match($keywords, array $fields=[]){
+    public function multi_match($keywords, array $fields=[], $search_type = 'best_fields'){
         if(count($fields) > 10){  //不能超过10个字段
             $fields = array_slice($fields, 0, 10);
         }
         $this->_parts['multi_match']['fields'] = $fields;
-        $this->_parts['multi_match']['query'] = $keywords;
+        $this->_parts['multi_match']['query']  = $keywords;
+        $this->_parts['multi_match']['type']   = $search_type;
+        return $this;
+    }
+
+    public function function_score($query=[], $factor=[], $boost_mode='multiply'){
+        if(!$query)
+            $query['multi_match'] = $this->_parts['multi_match'];
+        $this->_parts['function_score']['query'] = $query;
+        $this->_parts['function_score']['field_value_factor'] = $factor;
+        $this->_parts['function_score']['boost_mode'] = $boost_mode;
         return $this;
     }
 

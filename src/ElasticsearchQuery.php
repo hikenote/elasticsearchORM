@@ -26,6 +26,9 @@ class ElasticsearchQuery extends Query
         if($this->_parts['multi_match']){
             $params['body']['query']['multi_match'] = $this->_parts['multi_match'];
         }
+        if($this->_parts['function_score']){
+            $params['body']['query']['function_score'] = $this->_parts['function_score'];
+        }
         if($this->_parts['sort']){
             $params['body']['sort'] = $this->renderSort();
         }
@@ -47,10 +50,10 @@ class ElasticsearchQuery extends Query
     public function renderWhere(){
         $where=$this->_parts['where'];
         return [
-                'filtered'=> [
-                    'filter'=>$this->renderFilter($where)
-                ],
-            ];
+            'filtered'=> [
+                'filter'=>$this->renderFilter($where)
+            ],
+        ];
     }
 
     public function renderFilter($childWhere){
@@ -120,7 +123,7 @@ class ElasticsearchQuery extends Query
         return $filter;
     }
 
-    public function multi_search(){
+    public function search(){
         $result = $this->_esModel->search($this->assemble());
         return $result;
     }
@@ -139,17 +142,10 @@ class ElasticsearchQuery extends Query
         return $result;
     }
 
-    public function fetchAll(){
-        $params = $this->_esModel->getParams($this->assemble());
-        $result = $this->_esModel->search($params);
-        return $result;
-    }
 
     public function fetchOne(){
         $this->limit(1);
-        $params = $this->_esModel->getParams($this->assemble());
-        $result = $this->_esModel->search($params);
-        return $result[0];
+        return $this->search();
     }
 
 }
