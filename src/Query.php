@@ -54,10 +54,13 @@ class Query
     }
 
     public function function_score($query=[], $factor=[], $boost_mode='multiply'){
-        if(!$query)
+        if(!$query){
             $query['multi_match'] = $this->_parts['multi_match'];
+            $this->_parts['multi_match'] = [];
+        }
         $this->_parts['function_score']['query'] = $query;
-        $this->_parts['function_score']['field_value_factor'] = $factor;
+        if($factor)
+            $this->_parts['function_score']['field_value_factor'] = $factor;
         $this->_parts['function_score']['boost_mode'] = $boost_mode;
         return $this;
     }
