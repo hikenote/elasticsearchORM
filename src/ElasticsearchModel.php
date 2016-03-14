@@ -94,6 +94,7 @@ class ElasticsearchModel extends DataObject
         $result = self::$_esAdapter->search($params);
         $data = [];
         $data['total'] = $result['hits']['total'];
+        $data['data']  = [];
         foreach($result['hits']['hits'] as $value){
             $obj = self::instance($value['_source']);
             self::setDocumentInfo($obj, $value);
